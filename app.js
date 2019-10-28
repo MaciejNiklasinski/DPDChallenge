@@ -39,27 +39,28 @@ const depots = [
 // Wrap the rest of the logic in async iffy to allow asynchronous behavior within.
 (async function () {
     // Get value of the file path from the 3rd command line argument.
-    let filePath = process.argv[2];
+    const filePath = process.argv[2];
 
     // Construct an instance of a Date object based on 4th command line argument.
-    let date = new Date(process.argv[3]);
+    const date = new Date(process.argv[3]);
 
     // If provided date argument doesn't represent valid Date instance.
     if ((!date instanceof Date) || isNaN(date)) {
+        // Print the error into the console.
         console.log('\n\033[41mApplication encountered a problem with provided console execution parameter and must stop. \nPlease see exception details below:\033[0m');
         console.log(new ArgumentError(`Provided argument: ${process.argv[3]} is not a string in a format correct to be used for construction of a Date object. \nPlease provide string in a correct format YYYY-MM-DD.`).stack);
         // Ends application execution
         return;
     }
 
-    // Get to get parcels raw data buffer from the file.
+    // Attempt to get parcels raw data buffer from the file.
     let rawDataBuffer;
     try { rawDataBuffer = await rawDataServices.getRawData(filePath); }
     catch (error) {
         // Print the error into the console.
         console.log('\n\033[41mApplication encountered a problem with obtaining data from the file and must stop. \nPlease see exception details below:\033[0m');
         console.log(error.stack);
-        // Ends application execution
+        // End application execution
         return;
     }
 
@@ -84,11 +85,11 @@ const depots = [
         // Print the error into the console.
         console.log('\n\033[41mApplication encountered problem with obtaining data from the server and must stop. \nPlease see exception details below:\033[0m');
         console.error(error.stack);
-        // Ends application execution
+        // End application execution
         return;
     }
 
-    // Gets promises of storing all depots objects in a JSON file per depot and return array of created file paths.
+    // Get promises of storing all depots objects in a JSON file per depot and return array of created file paths.
     promises = depots.map((depot) => {
         // Return promise of saving depot instance into the JSON file.
         return rawDataServices.saveDepotToJSON(depot);
@@ -101,7 +102,7 @@ const depots = [
         // Print the error into the console.
         console.log('\n\033[41mApplication encountered problem with storing data into the file and must stop. \nPlease see exception details below:\033[0m');
         console.error(error);
-        // Ends application execution
+        // End application execution
         return;
     }
 
@@ -114,6 +115,7 @@ const depots = [
     }
 })();
 
+// Prints retrieving parcels route details 'failed and will be re-attempted' log.
 function printReattemptLog(parcelNumber, error, attemptsCount) {
     console.log('\033[30m\033[43m' + `Retrieving route details for parcel number: ${parcelNumber} failed ${attemptsCount}`
         + ` ${attemptsCount === 1 ? 'time' : 'times'} and it will be re-attempted.\n${error}` + '\033[0m');

@@ -43,20 +43,20 @@ function getRawData(filePath) {
     });
 } module.exports.getRawData = getRawData;
 
-// Returns promise of storing the provided depot into the JSON file and returning its path.
+// Returns promise of storing the provided depot instance into the JSON file and returning its path.
 function saveDepotToJSON(depot) {
 
-    // Validate whether the argument is a Buffer, and throw appropriate exception if its not.
-    if (!depot instanceof Depot) throw new TypeError('Provided \'depot\' argument is not a valid instance of a Depot class. Please provide valid Depot object.');
+    // Validate whether the argument is an instance of the Depot class, and throw appropriate exception if its not.
+    if (!depot instanceof Depot) throw new TypeError('Provided \'depot\' argument is not a valid instance of the Depot class. Please provide valid Depot object.');
 
     // Build absolute file path based on the depot name.
-    let filePath = path.resolve(`./${depot.name}.json`);
+    const filePath = path.resolve(`./${depot.name}.json`);
 
     // Return promise of storing the depot into the JSON file.
     return new Promise((resolve, reject) => {
         // Save the depot instance as a JSON file.
         fs.writeFile(filePath, JSON.stringify(depot), 'utf8', (error) => {
-            // If error is truthy, print appropriate info into the console and reject the promise.
+            // If error is truthy, reject the promise.
             if (error) { reject(error); }
             // Otherwise resolve the promise providing absolute path to the file in which depot has been saved as a return argument.
             resolve(filePath);
@@ -74,7 +74,7 @@ function decodeParcelsFromRawData(bufferData) {
     let data = bufferData.toString('utf-8');
 
     // Declare parcels array.
-    let parcels = [];
+    const parcels = [];
 
     // Normalize parcels raw data by removing the title row from it.
     data = normalizeParcelsRawData(data);
@@ -82,7 +82,7 @@ function decodeParcelsFromRawData(bufferData) {
     // Keep looping till all the parcels raw data has been processed.
     while (true) {
         // Get index of the first 'return' escape character
-        let lineEndsIndex = data.indexOf('\r');
+        const lineEndsIndex = data.indexOf('\r');
 
         // Declare variable which will to store the data associated with a single parcel.
         let parcelData;
@@ -101,7 +101,7 @@ function decodeParcelsFromRawData(bufferData) {
         }
 
         // Gets parcel from parcel raw data.
-        let parcel = decodeParcelFromRawData(parcelData);
+        const parcel = decodeParcelFromRawData(parcelData);
 
         // Add constructed parcel instance into the parcels container.
         parcels.push(parcel);
@@ -114,33 +114,34 @@ function decodeParcelsFromRawData(bufferData) {
     return parcels;
 } module.exports.decodeParcelsFromRawData = decodeParcelsFromRawData;
 
-// Retrieves instance of a Parcel class build based on provided parcel raw data.
+// Retrieves instance of a Parcel class build based on the provided parcel raw data.
 function decodeParcelFromRawData(parcelRawData) {
 
-    // Find index of the first comma separating parcel number from delivery date within the parcel raw data
-    let firstSeparatorIndex = parcelRawData.indexOf(',');
+    // Find index of the first comma, separating parcel number from delivery date within the parcel raw data.
+    const firstSeparatorIndex = parcelRawData.indexOf(',');
 
-    // Find index of the second comma separating delivery date from the postcode within the parcel raw data
-    let secondSeparatorIndex = parcelRawData.lastIndexOf(',');
+    // Find index of the second comma, separating delivery date from the postcode within the parcel raw data.
+    const secondSeparatorIndex = parcelRawData.lastIndexOf(',');
 
-    // Slice parcel raw data into separate attributes
-    let parcelNumber = parcelRawData.slice(0, firstSeparatorIndex);
-    let deliveryDateStr = parcelRawData.slice(firstSeparatorIndex + 1, secondSeparatorIndex);
-    let postcodeStr = parcelRawData.slice(secondSeparatorIndex + 1);
+    // Slice parcel raw data into separate parcel properties.
+    const parcelNumber = parcelRawData.slice(0, firstSeparatorIndex);
+    const deliveryDateStr = parcelRawData.slice(firstSeparatorIndex + 1, secondSeparatorIndex);
+    const postcodeStr = parcelRawData.slice(secondSeparatorIndex + 1);
 
-    // Construct Date object from the delivery date string.
-    let deliveryDate = new Date(deliveryDateStr);
-    let postcode = new Postcode(postcodeStr);
+    // Construct Date object from the decoded delivery date string.
+    const deliveryDate = new Date(deliveryDateStr);
+    // Construct Postcode object from the decoded postcode string.
+    const postcode = new Postcode(postcodeStr);
 
     // Constructs and return the Parcel instance.
     return new Parcel(parcelNumber, deliveryDate, postcode);
 }
 
-// Returns normalized, title-row free parcels data
+// Cuts out title-row from provided parcels raw data string and returns title-row free parcels raw data.
 function normalizeParcelsRawData(parcelsRawData) {
 
     // Gets index of the first 'return' escape character
-    let titleRowEndsIndex = parcelsRawData.indexOf('\r');
+    const titleRowEndsIndex = parcelsRawData.indexOf('\r');
 
     // Slices out the title row and returns normalized parcels raw data.
     return parcelsRawData.slice(titleRowEndsIndex + 1);

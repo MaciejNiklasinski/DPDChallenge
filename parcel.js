@@ -10,16 +10,16 @@ class Parcel {
         // Check whether the provided 'number' is a valid parcel number ..
         if (!isValidParcelNumber(number)) {
             // .. and throw appropriate exception if its not.
-            throw new ArgumentError(`Provided argument 'number': ${number} is invalid. Please provide string containing non-negative integer instead.`, number);
+            throw new ArgumentError(`Provided argument 'number': ${number} is invalid. Please provide string representing non-negative integer instead.`, number);
         }
         // Check whether the provided 'deliveryDate' is of expected type and throw appropriate exception if it's not.
-        else if (!deliveryDate instanceof Date) { throw new TypeError('Provided argument \'deliveryDate\' is not instance of Date class.'); }        
+        else if (!deliveryDate instanceof Date) { throw new TypeError('Provided argument \'deliveryDate\' is not instance of Date class. Please provide Date object instead.'); }
         // Check whether the provided 'deliveryDate' is representing valid date and throw appropriate exception if it doesn't.
         else if (isNaN(deliveryDate)) { throw new ArgumentError('Provided argument \'deliveryDate\' is an invalid instance of Date class. Please provide valid Date instance.', deliveryDate); }
         // Check whether the provided 'postcode' is of expected type and throw appropriate exception if it's not.
-        else if (!postcode instanceof Postcode) { throw new TypeError('Provided argument \'postcode\' is not a valid instance of Postcode class.'); }
+        else if (!postcode instanceof Postcode) { throw new TypeError('Provided argument \'postcode\' is not a valid instance of Postcode class. Please provided Postcode object instead.'); }
 
-        // Assigns values of the instance properties.
+        // Assign values of the instance properties.
 
         // The uniq id number.
         this.number = number;
@@ -36,15 +36,14 @@ class Parcel {
         // Estimated time of arrival to the destination address.
         this.eta = null;
     }
-}
-module.exports = Parcel;
+} module.exports = Parcel;
 
-// Returns true if provided number is an integer greater or equal to 0. Otherwise returns false.
-function isValidParcelNumber(number) {
+// Returns true if provided numberStr is a string representing an integer greater or equal to 0. Otherwise returns false.
+function isValidParcelNumber(numberStr) {
 
-    // If provided number is not an integer return false ..
-    if (!Number.isInteger(+number)) return false;
+    // If provided numberStr is not representing an integer return false ..
+    if (!Number.isInteger(+numberStr)) return false;
 
-    // Returns true if number is greater or equal to 0. Otherwise return false.
-    return number >= 0;
+    // Returns true if numberStr is representing value greater or equal to 0. Otherwise return false.
+    return numberStr >= 0;
 }

@@ -55,10 +55,10 @@ class RouteServiceProvider {
         // Await till all parcels gonna be looped through.
         await Promise.all(promises);
 
-        // Returns promise of obtaining most recent route details associated with the provided parcel and updates parcel instance accordingly.
     }
 } module.exports = RouteServiceProvider;
 
+// Returns promise of obtaining most recent route details associated with the provided parcel and updates parcel instance accordingly.
 function refreshParcelRouteDetails(parcel, reqOptions) {
     // Return new Promise of refreshing parcel details.
     return new Promise((resolve, reject) => {

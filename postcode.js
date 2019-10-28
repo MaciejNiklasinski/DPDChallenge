@@ -1,8 +1,9 @@
+// Load custom errors
 const ArgumentError = require('./errors.js').ArgumentError;
 
 class Postcode {
     constructor(postcodeStr) {
-        // Validates 'postcodeStr' type and throw appropriate exception incorrect.
+        // Validates 'postcodeStr' type and throw appropriate exception if incorrect.
         if (typeof (postcodeStr) !== 'string') throw new TypeError('Provided \'postcodeStr\' must be a string.');
         // Check if the format of the postcode string is valid and throw appropriate exception if its not.
         if (!isValidPostcode(postcodeStr)) throw new ArgumentError(`Provided \'postcodeStr\': ${postcodeStr} is not a string in a valid postcode format.`, postcodeStr);
@@ -11,16 +12,16 @@ class Postcode {
         this.string = postcodeStr.toUpperCase();
 
         // Get index of the first ' ' white space.
-        let separatorIndex = this.string.indexOf(' ');
+        const separatorIndex = this.string.indexOf(' ');
 
         // Slice out and assign an outward part of the postcode string.
         this.outward = this.string.slice(0, separatorIndex);
 
         // Find index of the first digit in an 'outward' part of the postcode string.
-        let outwardDigitIndex = getIndexOfFirstDigit(this.outward);
+        const outwardDigitIndex = getIndexOfFirstDigit(this.outward);
 
         // Find index of the first wildcard char in an 'outward' part of the postcode string.
-        let wildcardStartIndex = getIndexOfFirstWildcard(this.string);
+        const wildcardStartIndex = getIndexOfFirstWildcard(this.string);
 
         // Confirm that the postcode does not contain any other non-wildcard characters,
         // indexed to the greater value than the wildcardStartIndex.
@@ -57,23 +58,24 @@ class Postcode {
         this.unit = this.inward.slice(1);
     }
 
+    // Overrides default object toString method.
     toString() {
         return this.string;
     }
 
+    // Returns true if provided postcode is either equal, or contained within the same zone (specified by wildcard characters) as the current postcode.
     isEqualOrWildcard(postcodeToCompare) {
-
         // If provided postcodeToCompare is not an instance of Postcode class throw appropriate exception.
         if (!postcodeToCompare instanceof Postcode)
             throw new TypeError('Provided \'postcodeToCompare\' argument is not of required type. Please provide an instance of Postcode class instead.');
 
-        // Compare 'area' section of the postcode(no wildcards allowed)
+        // Compare 'area' section of the postcode(no wildcards allowed).
         if (this.area !== postcodeToCompare.area)
             return false;
 
         // Compare 'district' section of the postcode.
 
-        // If neither this postcode nor postcode to discover contains wildcard character in the 'district' section of the postcode ..
+        // If neither this postcode nor postcode to compare contains wildcard character in the 'district' section of the postcode ..
         if (!includesWildcard(this.district) && !includesWildcard(postcodeToCompare.district)
             // .. and length of these sections are not equal ..
             && (this.district.length !== postcodeToCompare.district.length))
@@ -93,11 +95,11 @@ class Postcode {
 
         // Compare 'sector' section of the postcode.
 
-        // If character located under the provided index in either of postcodes 'sector' section is a wildcard ..
+        // If character representing 'sector' part of either postcodes is a wildcard ..
         if (this.sector === '?' || postcodeToCompare.sector === '?')
             // .. return true.
             return true;
-        // Else if character located under the provided index in this postcode and postcodeToCompare are not equal ..
+        // Else if characters representing 'sector' part of the postcode and postcodeToCompare are not equal ..
         else if (this.sector !== postcodeToCompare.sector)
             // .. return false.
             return false;
@@ -117,7 +119,6 @@ class Postcode {
                 return false;
     }
 } module.exports = Postcode;
-
 
 // Returns index of first encountered digit, or -1 if str does not contain any digits
 function getIndexOfFirstDigit(str) {
@@ -153,8 +154,6 @@ function getIndexOfFirstWildcard(str) {
 function includesWildcard(str) {
     return str.includes('?');
 }
-
-
 
 // Return true if provided string contains a wildcard '?' character located after the specified index. Otherwise returns false.
 function includesWildcardAfterIndex(str, i) {
