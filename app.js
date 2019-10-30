@@ -30,7 +30,7 @@ catch (error) {
 }
 
 // Construct depots.
-const depots = [    
+const depots = [
     new Depot('Birmingham', [new Postcode("B?? ???"), new Postcode("TF? ???"), new Postcode("DY? ???"), new Postcode("WV? ???")]),
     new Depot('Leeds', [new Postcode("WF16 ???"), new Postcode("BD?? ???"), new Postcode("LS?? ???")]),
     new Depot('Wakefield', [new Postcode("WF1 ???"), new Postcode("WF2 ???"), new Postcode("WF3 ???"), new Postcode("WF4 ???"), new Postcode("HD? ???")])
@@ -110,7 +110,7 @@ const depots = [
     console.log('\033[30m\033[42mApplication execution completed successfully.\033[0m \nThe data has been stored in the files located on the paths listed below:');
 
     // Print paths to all files in which data has been stored.
-    for await (depotFilePath of promises) {
+    for await (let depotFilePath of promises) {
         console.log(`  ${depotFilePath}`);
     }
 })();
