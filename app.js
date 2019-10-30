@@ -17,15 +17,15 @@ const parcelsSorter = new ParcelsSorter();
 
 // Construct route details provider.
 let routeDetailsProvider;
-try { routeDetailsProvider = new RouteDetailsProvider(rawDataServices.getToken(), printReattemptLog); }
+try { routeDetailsProvider = new RouteDetailsProvider(rawDataServices.getToken(), 100, printReattemptLog); }
 catch (error) {
-    // If error is of a type of Type error re-throw and let application fail.
-    if (error instanceof TypeError) throw error;
+    // If error is of a type of TypeError or ArgumentError re-throw and let application fail.
+    if (error instanceof TypeError || error instanceof ArgumentError) throw error;
 
     // Otherwise print the error into the console.
     console.log('\n\033[41mApplication encountered a problem with obtaining remote service authorization token from the file and must stop. \nPlease see exception details below:\033[0m');
     console.log(error.stack);
-    // Ends application execution
+    // End application execution
     return;
 }
 

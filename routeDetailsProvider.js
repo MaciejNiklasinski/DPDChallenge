@@ -9,47 +9,70 @@ const HTTPError = require('./errors.js').HTTPError;
 const reqURL = 'https://us-central1-dpduk-s-test-d1.cloudfunctions.net/parcels/';
 
 class RouteServiceProvider {
-    constructor(token, onRetrying) {
-        // Validate that provided object has a required property to be used as a authorization token, and throw appropriate exception if it doesn't.
+    constructor(token, requestsLimit, onReattempting) {
+        // Validate that provided object has a required property to be used as a authorization token and throw appropriate exception if it doesn't.
         if (!token.hasOwnProperty('Authorization'))
-            throw new ArgumentError(`RouteServiceProvider object failed to initialize as provided token instance is not an object containing 'Authorization' property and as such cannot be used. Please provide valid token.`);
+            throw new ArgumentError(`RouteServiceProvider object failed to initialize as provided token instance is not an object containing 'Authorization' property and as such cannot be used. Please provide valid token.`, token);
 
-        // Check whether provided onRetrying argument can be use as a callback and throw appropriate exception if it can't.
-        if (typeof onRetrying !== 'function')
-            throw new TypeError('RouteServiceProvider object failed to initialize as provided \'onRetrying\' argument is not a function ans as such cannot be used as a callback.');
+        // Check whether provided request limit is of a number Type and throw appropriate exception if its not.
+        if (typeof requestsLimit !== 'number')
+            throw new TypeError('RouteServiceProvider object failed to initialize as provided \'requestsLimit\' argument is not of a valid number type.');
 
+        // Check whether provided request limit is greater than one and throw appropriate exception if its not.
+        if (requestsLimit < 1)
+            throw new ArgumentError('RouteServiceProvider object failed to initialize as provided \'requestsLimit\' argument is less than 1. Please provide number greater than 1 instead.', requestsLimit);
+
+        // Check whether provided onReattempting argument can be use as a callback and throw appropriate exception if it can't.
+        if (typeof onReattempting !== 'function')
+            throw new TypeError('RouteServiceProvider object failed to initialize as provided \'onReattempting\' argument is not a function ans as such cannot be used as a callback.');
+
+        // Http request options.
         this.reqOptions = { headers: token };
-        this.onRetrying = onRetrying;
+
+        // Limit of concurrent http requests.
+        this.requestsLimit = requestsLimit;
+
+        // Concurrent http requests counter.
+        this.requestsCount = 0;
+
+        // On reattempting http request callback.
+        this.onReattempting = onReattempting;
     }
 
     // Obtains and updates route detail for all the provided parcels.
     async refreshParcelsRouteDetails(parcels) {
 
-        // Loop through all the provided parcels and update each with eta and route number.
+        // Return promises of obtaining and updating route details for all provided parcels.
         let promises = parcels.map(async (parcel) => {
-
             // Declare attempt counter variable. 
             let attemptCount = 0;
 
             // Re-attempt till successfully, or till error get re-throw.
             while (true) {
-                // Obtain parcel current eta and route number from the server and update parcel instance with these data.
+
+                // While number of currently handled requests is greater or equal to the provider requests limit delay next request by 100 ms.
+                while (this.requestsCount >= this.requestsLimit) await delay(100);
+                // Increase ongoing request counter by 1;
+                this.requestsCount++;
+
+                // Return promise of obtaining and updating parcel route details.
                 try { return await refreshParcelRouteDetails(parcel, this.reqOptions); }
                 // Retry or await to re-throw the error.
                 catch (error) {
                     // If error caught is indicating that the problem occurred on the server side ..
                     if (error.code == "ECONNRESET" || error.code == "ETIMEDOUT" || (error instanceof HTTPError && error.statusCode >= 500)
-                        // .. and number of re-attempt is less than 10.
+                        // .. and number of re-attempts is less than 10.
                         && attemptCount < 10) {
                         // Increase attemptCount
                         attemptCount++;
-                        // Execute onRetrying callback.
-                        this.onRetrying(parcel.number, error, attemptCount);
                         // Delay next attempt by one second.
                         await delay(1000);
+                        // Execute onRetrying callback.
+                        this.onRetrying(parcel.number, error, attemptCount);
                         // Otherwise re-throw caught error.
                     } else { throw error; }
-                }
+                    // Finally decrease ongoing requests counter by 1;
+                } finally { this.requestsCount--; }
             }
         });
         // Await till all parcels gonna be looped through.
